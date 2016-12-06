@@ -2,12 +2,20 @@
 ![docker-logo](images/what_is_docker.jpg)
 
 !SUB
+### VM vs Containers
+![contenaterVsVM](images/07_vm-compare.jpg)
+
+!SUB
 ### Docker architecture
 ![architecture](images/architecture.jpg)
 
-[//]: #!SUB
-[//]: //#### Docker architecture
-[//]: //![architecture](images/docker-execdriver-diagram.png)
+!SUB
+#### Docker architecture
+![architecture](images/docker-execdriver-diagram.png)
+
+!SUB
+#### Docker images
+![architecture](images/docker-filesystems-busyboxrw.png)
 
 !SUB
 ## The Life of a Container  

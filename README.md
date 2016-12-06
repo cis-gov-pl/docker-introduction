@@ -1,8 +1,9 @@
 # Introduction to docker
 The slide deck contains a basic introduction for Docker. The labs are designed for a default Docker and Docker Compose installation using a standard linux shell. The concepts will works for the Docker Toolbox on Windows and Mac as weel but keep in mind you need to replace ip adresses.
 
-- You can see the slides via GitHub static pages [here](http://npalm.github.io/docker-introduction-lb).
-- Or just run them in a conainter `docker run -p 80:80 npalm/docker-introduction`
+The slide deck is based on [http://npalm.github.io/docker-introduction/](http://npalm.github.io/docker-introduction/) and []().
+
+- You can see the slides via GitHub static pages [here](http://cis-gov-pl.github.io/docker-introduction).
 
 ## slides
 For the slides we use the [RevealJS](https://github.com/hakimel/reveal.js/) framework.
