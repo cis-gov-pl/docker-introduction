@@ -4,12 +4,10 @@
 
 !SUB
 ### Some notes
-* All steps assumes you have a command line open.
+* All steps assume you have a command line open.
   * Almost all steps formatted as code can be executed.
     *  `\` is a line break and can be copied and pasted.
     * `< ... > ` indicates you should replace the value
-* Since the VM includes a local registry cache some steps are slight different for a VM. These steps are prefixed with \[VM\].
-
 
 !SUB
 ### Docker basics
@@ -37,7 +35,6 @@ Run 'docker COMMAND --help' for more information on a command.
 !SUB
 ### Pull an image
 * First we pull a base image. We use ubuntu 14.04 latest as base. See [Ubuntu repo on docker registry](https://registry.hub.docker.com/_/ubuntu/)
-* [VM]: The VM already containers the images.
 ```
 docker pull ubuntu
 ```
@@ -45,8 +42,6 @@ docker pull ubuntu
 ```
 docker images
 ```
-* [VM]: You will see many images since all images are pre-fetched.
-
 
 !SUB
 ### Start a docker container
@@ -64,6 +59,20 @@ docker ps -a
 - Remove the container
 ```
 docker rm <id or name>
+```
+
+!SUB
+### Kernel & Root user
+* The container uses the kernel of the *host*
+```
+docker run --rm ubuntu uname -a
+uname -a
+```
+* Most of the time application in the container runs as root
+* However it will not have all capabilities of system administrator
+```
+docker run --rm ubuntu capsh --print | grep Current
+sudo capsh --print | grep Current
 ```
 
 !SUB
