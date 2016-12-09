@@ -13,9 +13,11 @@
 * For the workshop we use an VM instance @ CIS cluster:
   * Connection details on paper sheets you recieved
   * Requires SSH client ( [putty](http://www.chiark.greenend.org.uk/~sgtatham/putty/download.html) on windows )
-* Alternatively you can run the handson on your local machine
-  * Linux : Install docker, docker-compose, git and your favourite editor
+* Alternatively you can run the handson on your local machine in VirtualBox
   * VM : Install VirtualBox [VirtualBox](https://www.virtualbox.org/wiki/Downloads)
+* Last possibility is running docker locally on linux machine
+  * Be aware that part of the tutorial might behave differently
+  * Install docker, docker-compose, git and your favourite editor
 
 !SUB
 ### VirtualBox
