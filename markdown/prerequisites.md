@@ -10,7 +10,7 @@
 
 !SUB
 ### Setup
-* For the workshop we use an VM instance @ CIŚ cluster:
+* For the workshop we use an VM instance @ CIS cluster:
   * Connection details on paper sheets you recieved
   * Requires SSH client ( [putty](http://www.chiark.greenend.org.uk/~sgtatham/putty/download.html) on windows )
 * Alternatively you can run the handson on your local machine
@@ -28,7 +28,7 @@
 
 !SUB
 ### Docker @ CIŚ
-* The default docker network clashes with CIŚ networks
+* The default docker network clashes with CIS networks
 * Change it after the installation
 
 #### Debian
