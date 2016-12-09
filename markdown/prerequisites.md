@@ -3,7 +3,7 @@
 
 !SUB
 ### Some hints
-* You will find the slides here: [http://cis-gov-pl.github.io/docker-introduction/](http://cis-gov-pl.github.io/docker-introduction/)
+* You will find the slides here: [http://cis-ncbj.github.io/docker-introduction/](http://cis-ncbj.github.io/docker-introduction/)
 - Navigation through the slides is easy, just use your arrow keys. Left and right for going to the previous or next section and up and down for previous or next page. The space bar always give you the next page.
 - All code blocks are meant to be executed by your self unless mention otherwise.
 - Have fun, take your time, and feel free to ask questions.
@@ -20,7 +20,7 @@
 !SUB
 ### VirtualBox
 * We use a VirtualBox VM to setup a common environment.
-* Premade image [docker-tutoprial.img](http://)
+* Premade image [https://goo.gl/7zzSos](https://goo.gl/7zzSos)
 * The VirtualBox appliance contains
   * CentOS 7 Desktop
   * Tools: Docker, Docker Compose and Git (among others)
