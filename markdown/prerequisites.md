@@ -29,7 +29,7 @@
   * User: cis, Password: cis
 
 !SUB
-### Docker @ CIŚ
+### Docker @ CIS
 * The default docker network clashes with CIS networks
 * Change it after the installation
 
