@@ -71,11 +71,23 @@ Devices are not namespaced:
 !SUB
 ### Security
 * Drop privileges
-  * Docker drops a lot of root capabilities
+
+  *Docker drops a lot of root capabilities*
 * Run as user inside container
 * Use SELinux or AppArmor
 * Run images only from trusted sources
 
 !SUB
 ### Docker IO
+* Docker supports several storage drivers for the layered FS
+  * __AUFS__ - Ubuntu: *slow for big files, not mainline*
+  * __Device Mapper__ - Red Hat: *very slow or slow, complex and troublesome*
+  * __ZFS__: *not mainline, SELinux??*
+  * __Btrfs__: *slow??, no page cache, no SELinux*
+  * __Overlayfs__: *fast, very new, not mainline, no SELinux*
+* **Use volumes for all data written by the container**
 
+!SUB
+### Further reading
+* [http://www.projectatomic.io/blog/2015/06/notes-on-fedora-centos-and-docker-storage-drivers](http://www.projectatomic.io/blog/2015/06/notes-on-fedora-centos-and-docker-storage-drivers)
+* [https://opensource.com/business/14/7/docker-security-selinux](https://opensource.com/business/14/7/docker-security-selinux)

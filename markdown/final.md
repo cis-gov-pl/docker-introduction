@@ -1,5 +1,9 @@
 ## THANKS
-![docker](images/docker-all.png)
+![theend](images/theend.jpg)
 
-
-`docker run -p 80:80 npalm/docker-introduction`
+```
+git clone https://github.com/cis-ncbj/docker-introduction.git
+cd docker-introduction
+docker run -d -p 80:80 --name slides \
+  -v ${PWD}:/usr/share/nginx/html nginx
+```

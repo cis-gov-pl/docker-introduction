@@ -35,28 +35,36 @@ Run 'docker COMMAND --help' for more information on a command.
 !SUB
 ### Pull an image
 * First we pull a base image. We use ubuntu 14.04 latest as base. See [Ubuntu repo on docker registry](https://registry.hub.docker.com/_/ubuntu/)
+
 ```
 docker pull ubuntu
 ```
 * Now we have the image of ubuntu in our local repository, verify with the command:
+
 ```
 docker images
 ```
 
 !SUB
+![Docker Hub](images/docker-hub.png)
+
+!SUB
 ### Start a docker container
 * Time for hello world.
 * With the next command you start an ubuntu container and execute the command to echo some famous string.
+
 ```
 docker run ubuntu echo "hello world"
 ```
 * Running the command above creates, starts and exits the ubuntu container.
 - Observe the output with commands below, remember you can get help by executing `docker help` or `docker help ps`
+
 ```
 docker ps
 docker ps -a
 ```
 - Remove the container
+
 ```
 docker rm <id or name>
 ```
@@ -64,114 +72,174 @@ docker rm <id or name>
 !SUB
 ### Kernel & Root user
 * The container uses the kernel of the *host*
+
 ```
 docker run --rm ubuntu uname -a
 uname -a
 ```
 * Most of the time application in the container runs as root
 * However it will not have all capabilities of system administrator
+
 ```
 docker run --rm ubuntu capsh --print | grep Current
 sudo capsh --print | grep Current
 ```
 
 !SUB
-### Start a docker container
-* Start a container as deamon which prints the string "hello world" every second.
+### Execute docker container interactively
+* Start a container with an interactive shell
+
 ```
-docker run -d --name mycontainer ubuntu /bin/sh -c \
-   "while true; do echo Hello world; sleep 1; done"
+docker run --name nginx-base -it -e TERM=xterm ubuntu
 ```
-* Inspect the logging
+* Install a text editor inside th container
+
 ```
-docker logs -f mycontainer
+apt-get install vim nano
 ```
-* Hit ctrl-c to exit the logging
-* Stop the container
+* ??? No vim or nano in ubuntu repositories ???
+
 ```
-docker ps
-docker stop mycontainer
-docker ps
-docker ps -a
+apt-get update
+apt-get install vim nano
+```
+* Lets install nginx and edit simple web page
+
+```
+apt-get install nginx
+ln -sf /dev/stdout /var/log/nginx/access.log
+ln -sf /dev/stderr /var/log/nginx/error.log
+vim /var/www/html/index.html
+exit # Finish when satisfied with the results
 ```
 
 !SUB
-### Update a docker image
+### Data persistency
 
 * Changes made in a container are persisted only in that container. At the moment the container is destroyed the change are lost too.
-* Commit the changes made in a container to an image, persists the change.
-
-```
-# Start our container
-docker start mycontainer
-
-# Exec the bash shell, this command gives access to our container
-docker exec -i -t mycontainer /bin/bash
-
-## You should see now something like:
-> root@<id>:/# _
-```
+* There are three ways to obtain data persistence:
+  * Commit the changes made in a container to an image, persists the change.
+  * Store persistent files in host directory mounted inside the container
+  * Store persistent files in data container
 
 !SUB
-### Update a docker image
-* Next we are going to
-  * update the repositories
-  * install the game cowsay
-  * create a symbolic link
-  * clean up
-* The next command is a composite of all these actions.
-
-```
-apt-get update && apt-get install cowsay -y && \
-  ln /usr/games/cowsay /usr/bin/cowsay && rm -rf /var/lib/apt/lists/*
-
-```
-
-!SUB
-### Update a docker image
-
-* Test the game is working.
-```
-cowsay "Hello world"
-```
-* Next we exit the container.
-```
-exit
-```
-* Our installed game is now available in the docker container with the name mycontainer. But not in the image that is used to create the container.
-* You can now execute the cowsay command in the same way as running the bash shell.
-```
-docker exec -i -t mycontainer cowsay "Hello <name>"
-```
-
-!SUB
-
-### Update a docker image
+### Create a docker image
+* Image naming conventions
+  * `<name>:<tag>` - official docker containers
+  * `<user>/<name>:<tag>` - public images @ [https://hub.docker.com](https://hub.docker.com)
+  * `local/<name>:<tag>` - local images (stored in local image cache)
 * Commit your changes in the container to an (new) image.
+
 ```
-docker commit mycontainer <yourname>/ubuntu
+docker commit nginx-base local/nginx
 ```
 * Inspect your changes.
+
 ```
-docker diff mycontainer           # shows the added files
-docker history ubuntu             # shows the image history
-docker history <yourname>/ubuntu  # shows the image history
+docker images                     # list images stored in local cache
+docker history local/nginx        # shows the image history
+docker diff nginx-base            # shows the added files
 ```
 * Remove the container.
-```
-docker stop mycontainer \
-       | xargs docker rm          # remove the container
-```
 
+```
+docker rm nginx-base
+```
 
 !SUB
-### Update a docker image
-* Now create a new container based on the newly created image and run the game.
+### Run nginx using your image
+* Start a new container in daemon mode
+  * Publish port 80 to access the web server
+  * Run nginx with logging set to stdout/stderr
+
 ```
-docker run --rm <yourname>/ubuntu cowsay "Hello world"
+docker run -d --name nginx1 -p 80:80 local/nginx nginx -g "daemon off;"
+docker ps
 ```
-* The next command shows that the game is not available in the ubuntu image.
+* Access your web page
+  * Cluster VMs: `<hostname> -> docker<NR>.cis.gov.pl`
+  * VirtualBox: `<hostname> -> localhost`
+
 ```
-docker run --rm ubuntu cowsay "Hello world"
+firefox http://<hostname> &
 ```
-* You can push your changes to the docker registry, for which you neet to create your own repository. But rememeber it is a bad practice to push manual build binaries into a repository.
+* Inspect the logging
+
+```
+docker logs nginx1
+```
+* Check `docker help logs for list of very useful options
+
+!SUB
+### Interactive access to running container
+* Use docker exec to access a running container
+
+```
+docker exec -it nginx1 bash
+vim /var/www/html/index.html
+exit
+```
+
+* Copy files from and to the container
+
+```
+docker cp nginx1:/var/www/html/index.html /tmp
+cat /tmp/index.html
+vim /tmp/index.html
+docker cp /tmp/index.html nginx1:/var/www/html
+```
+
+!SUB
+### Host directories as volumes
+![Host folder](images/docker-host-folder.jpg)
+http://www.slideshare.net/durdn/be-a-better-developer-with-docker
+
+!SUB
+### Host directories as volumes
+* Run new nginx instance using host directory as a volume
+  * Use a different name
+  * Publish port 80 as port 888 this time
+
+```
+docker run -d -v /opt/docker-introduction-data/static-site:/var/www/html \
+    --name nginx3 -p 888:80 local/nginx nginx -g "daemon off;"
+```
+* Access your web page
+
+```
+firefox http://<hostname>:888 &
+```
+
+!SUB
+### Data containers
+![Data Container](images/docker-data-container.jpg)
+http://www.slideshare.net/durdn/be-a-better-developer-with-docker
+
+!SUB
+### Data containers
+* Create data only container and put inside your web page
+
+```
+docker create -v /var/www/html --name nginx-data ubuntu /bin/true
+docker cp /tmp/index.html nginx-data:/var/www/html
+```
+* Run new nginx instance using volume from the data container
+  * Use a different name
+  * Publish port 80 as port 88 this time
+
+```
+docker run -d --volumes-from nginx-data --name nginx2 -p 88:80 \
+    local/nginx nginx -g "daemon off;"
+```
+* Access your web page
+
+```
+firefox http://<hostname>:88 &
+```
+* To edit files in data container we need a runing container
+
+```
+docker run -it --rm --volumes-from nginx-data -e TERM=xterm local/nginx
+vim /var/www/html/index.html
+```
+

@@ -3,183 +3,166 @@
 ## Building a image
 
 !SUB
-### Docker building your own webserver
-* Below some of the docker commands
+## Dockerfile
 
-```
-docker help
-
-# Partial output
-
-Commands:
-    build     Build an image from a Dockerfile
-    commit    Create a new image from a container's changes
-    info      Display system-wide information
-    inspect   Return low-level information on a container or image
-    login     Register or log in to a Docker registry server
-    logout    Log out from a Docker registry server
-    port      Lookup the public-facing port that is NAT-ed to
-              PRIVATE_PORT
-    push      Push an image or a repository to a Docker registry server
-    tag       Tag an image into a repository
-    top       Lookup the running processes of a container
-```
+* Dockerfile is a script describing how to create an image
+* Each command results in a layer of the image
+* Behaves a bit similarly to a Makefile
+  * Tries to use existing layers if nothing changed
+* Key to automatic creation of images
+* Docs: [Dockerfile reference](https://docs.docker.com/engine/reference/builder/)
 
 !SUB
-### Building our own webserver
-* In this handson lab we will build our own webserver image that hosts some static pages.
-* Steps
-    * Create some static content
-    * Create a Dockerfile
-    * Build a docker image
-    * Run the image
-
-!SUB
-### Create some static content
-* Create an empty dir.
+## Dockerfile by example
 ```
-mkdir lab2-web
-cd lab2-web
-```
-* Add some static content, for example create a file index.html with some content.
+# Base image
+FROM python:3
+MAINTAINER Konrad Klimaszewski <konrad.klimaszewski@ncbj.gov.pl>
 
-```
-<!DOCTYPE html>
-<html><head>
-<meta charset="UTF-8">
-<title>Hello world</title></head>
+# Copy to the image pip requirements file
+COPY requirements.txt /usr/src/app/
+WORKDIR /usr/src/app
 
-<body>Hello world</body>
+# Install dependencies (notice --no-cache-dir)
+RUN pip install --no-cache-dir -r requirements.txt
 
-</html>
-```
+# Copy the rest of the application
+COPY . /usr/src/app
 
-!SUB
-### The Dockerfile
-With a dockerfile you specify how an image is build, which files are added, and which command should executed when the container is started.
+# Tell the port number the container should expose
+EXPOSE 5000
 
-!SUB
-### Build docker image
-Create a file named `Dockerfile` and add the following content
-
-```
-FROM nginx
-MAINTAINER <your name> <your.mail@domain.ext>
-
-COPY index.html /usr/share/nginx/html/
+# Run the command
+CMD ["python", "./app.py"]
 ```
 
 !SUB
 ### Build docker image
+* The Dockerfile and the static web app are already prepared:
+
+```
+cd /opt/docker-introduction-data/flask-app
+ls
+```
 * Building the image based on a parent image will create only the diff image.
   * For building the image, you should specify a repository and tag.
-  * Specify as repository "lab2/webapp" at leave the tag empty.
+  * Specify as repository "local/static-cats" and leave the tag empty.
+
 ```
-docker build --tag lab2/webapp .
+docker build --tag local/static-cats .
 ```
 * Check the result
+
 ```
 docker images
 ```
 
 !SUB
 ### Run the image
-* First we have a look of the description of the image. Here you will see two ports are exposed, 80 and 443. We will use port 80 and map it to 8888.
-Start the container as deamon
+* Run new web app instance using `local/static-cats` image
+  * Publish port 80 as 8888
+
 ```
-docker run -d --name myapp -p 8888:80 lab2/webapp
+docker run -d --name cats -p 8888:5000 local/static-cats
 ```
-* Test with a browser or curl. You have to point your browser to the host of the docker engine.
-  * AWS: user your AWS instance ip address.
-  * Mac or Windows: use the ip address of docker-machine.
-  * Linux native: localhost
-* Clean up
+* Access your web page
+
 ```
-docker stop myapp | xargs docker rm
+firefox http://<hostname>:8888 &
 ```
 
 !SUB
-### Mapping ports
-* When automating it does not work when you have to decide on design time which port you need to claim on the host.
-* You can let docker decide which port to claim by leaving the map on the host site empty. `docker run -d -p 80 ...`. The result of this command is the container id. By using the command `docker port <id>` you can find the mapped port.
-* The next command combines all previous actions.
-```
-docker port $(docker run -d --name myapp -p 80 lab2/webapp) | \
-    cut -d\> -f2 | \
-    xargs curl
-```
-* Clean up
-```
-docker stop myapp | xargs docker rm
-```
-
-!SUB
-### Automated build
-
-![docker-machine](images/optional.jpg)
-
-###This section is optional
-* Less than 20 minutes to go, read the next slide and go to lab 3
+![static](images/catgif.png)
 
 
 !SUB
-### Automated build
-* In Lab 1 we have build a docker container manually. In the first part of the second lab we automated our build using a Dockerfile. The next step is to automate the proces as whole.
-* The docker hub provides automated build. Follow the next steps to automate the docker build.
-* The next steps will guide you through setting up the build.
-  * Create a git repo on GitHub or BitBucket, create an account if you don't have.
-  * Create a dockerhub account if you do not have it yet.
-  * Create an automated build on dockerhub.
-  * Push the source code to your git repo.
+### More advanced example
 
-!SUB
-### Automated build (GIT)
-- Create a [GitHub](http://www.github.com) or [BitBucket](http://www.bitbucket.org) account (or use an existing if you have). We using a public git repo to host our code.
-- Create a new repository `lab2-web`.
-
-
-!SUB
-### Automated build (DockerHub)
-The next step is to automate the build.
-- Go to the Docker hub: [dockerhub])(https://hub.docker.com/) and create an account.
-- Connect your GitHub (or BitBucket) to your Docker Hub account.
-- Create an automated build (top menu).
-- Use as name for the docker hub repo: `lab2-web` and choose create.
-- Next go to build settings:
-  - Set Name to `master`, should be the default.
-  - Set Docker Tag Name to `latest`, should be the default.
-- Click save changes.
-
-!SUB
-### Automated build
-- Commit and push your sources to the created git repo to trigger a build.
+#### Part 1
 
 ```
-# Ensure you are in the directory lab2-web
-echo '# lab2-web' >> README.md
-git init
-git add --all
-git commit -m "Some comment"
-git remote add origin <your git url>
-git push -u origin master
+# Use nodejs as base image
+FROM node:4.3
+MAINTAINER Konrad Klimaszewski <konrad.klimaszewski@ncbj.gov.pl>
 
+# Add local user
+RUN groupadd -r flask && useradd -r -g flask flask
+
+## Run all commands in one chain: ##
+## - reduces number of layers     ##
+## - allows for cleanup step      ##
+# Install system-wide deps for python and node
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+      python-pip python-dev dnsutils \
+ && rm -rf /var/lib/apt/lists/*
+
+## Separate install of app dependencies from the app           ##
+## - During rebuild after code change this step will be skiped ##
+# Copy dependency lists
+COPY flask-app/requirements.txt flask-app/package.json /opt/flask-app/
+WORKDIR /opt/flask-app
+
+# Install app specific dependencies
+RUN npm install \
+ && pip install -r requirements.txt
 ```
 
 !SUB
-### Automated build
-- Observe the output on the build page on Docker Hub. Once the build is done create a container based on your new build image.
-- You could also trigger a build with a HTTP post. See the instructions on the build settings page.
+### More advanced example
+
+#### Part 2
 
 ```
-docker run -d --name myapp -p 8888:80 \
-    <docker-hub-account>/lab2-web
-```
+# Copy our application code
+COPY flask-app /opt/flask-app
 
+# Build application (compactify json, css, etc)
+RUN npm run build
+
+## If possible drop as many privilidges as possible ##
+# Run the application as normal user
+USER flask
+
+# expose port
+EXPOSE 5000
+
+# start app
+CMD [ "python", "./app.py" ]
+```
 
 !SUB
-### Same same but different
-![easy](images/easy.jpg)
+### Build docker image for FoodTrucks
+* The Dockerfile and the FoodTrucks web app are already prepared:
+
 ```
-docker run -d -p 8888:80 --name myapp -v \
-  <dir-to-webapp>:/usr/share/nginx/html nginx
+cd /opt/docker-introduction-data/food-trucks
+ls
 ```
+* Build the image
+
+```
+docker build --tag local/food-trucks .
+```
+* Check the result
+
+```
+docker images
+```
+
+!SUB
+### Run the application
+* Run new web app instance using `local/food-trucks` image
+  * Publish the port 5000
+
+```
+docker run -d --name food-trucks -p 5000:5000 local/food-trucks
+```
+* Access your web page
+
+```
+firefox http://<hostname>:5000 &
+```
+
+!SUB
+![static](images/food-trucks-empty.png)

@@ -2,6 +2,11 @@
 ![docker-tools](images/docker-tools.jpg)
 
 !SUB
+### Docker registry @ CIŚ
+![empire_needs_you](images/empire_needs_you.jpg)
+
+
+!SUB
 ### Docker toolbox
 
 - The Docker Toolbox is an installer to quickly and easily install and setup a Docker environment on your computer.
@@ -30,39 +35,7 @@ Compose is a tool for defining and running complex applications with Docker. Wit
 ![docker-compose](images/docker-compose.png)
 
 !SUB
-### Docker compose
-```
-gitlabdb:
-  image: postgres
-  environment:
-    - POSTGRES_USER=gitlab
-    - POSTGRES_PASSWORD=password
-gitlab:
-  image: sameersbn/gitlab
-  links:
-    - gitlabdb:postgresql
-  environment:
-    - DB_USER=gitlab
-    - DB_PASS=password
-  ports:
-    - "10080:80"
-  volumes:
-    - ./data/gitlab/data:/home/git/data
-
-```
-
-
-!SUB
 ### Docker swarm
 Docker Swarm is native clustering for Docker. It turns a pool of Docker hosts into a single, virtual host.
 
 ![swarm](images/docker-swarm.png)
-
-
-!SUB
-## What about Microsoft?
-![tools](images/docker-microsoft.jpg)
-
-!SUB
-## Container solution on Azure
-![tools](images/docker-windows-linux.jpg)

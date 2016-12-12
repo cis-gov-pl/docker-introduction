@@ -78,30 +78,10 @@ RMI a container image (delete image)
 | command      | description           |
 | ------------ |---------------|
 | ps |shows running containers|
-| logs |fetch the logs of a containe|
+| logs |fetch the logs of a container|
 | inspect |return low-level information on a container or image|
 | events |gets events from container|
 | port |list port mappings for the container
 | top |display the running processes of a container|
 | stats |display a live stream of container(s) resource usage statistics
 
-!SUB
-## Dockerfile
-
-Each Dockerfile is a script, composed of various commands and arguments listed successively to automatically perform actions on a base image in order to create a new one. Such script are used for organizing things and greatly help with deployments by simplifying the process start-to-finish.
-
-!SUB
-## Dockerfile by example
-```
-FROM dockerfile/java:oracle-java8
-MAINTAINER Niek Palm <dev.npalm@gmail.com>
-
-RUN apt-get install git -y
-
-ADD service.jar
-
-EXPOSE 8080
-
-CMD ["java","-jar","/service.jar"]
-
-```

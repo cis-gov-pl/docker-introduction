@@ -3,22 +3,35 @@
 ## Networking
 
 !SUB
+### Food Trucks
+* A simple app to search for food stands in San Francisco
+* The app's backend is written in Python ([Flask](http://flask.pocoo.org/))
+* For search it uses [Elasticsearch](https://www.elastic.co/)
+* Let's try and dockerize it into two containers
+  * One container for Elasticsearch
+  * One for python backend
+  * Containers connected via network
+
+!SUB
 ### Docker networking topology
 ![test](images/docker-network-topology.png)
-- none, no networking
-- bridge, each container has is own
-- joined, containers shares a single networking
-- hosts, use the host networking
+- __none__, no networking
+- __bridge__, each container has is own
+- __shared__, containers share a single network stack
+- __hosts__, use the host networking
+- __user defined__, user defined network
 
 !SUB
 ### Docker networking topology by Example
 
-
 ```
+# List docker networks
+docker network ls
+
 # Run a container with no network
 docker run --rm --net none busybox:latest ifconfig
 
-# Run a container in a bridged network
+# Run a container in a bridged network (using default docker0 bridge)
 docker run --rm --net bridge busybox:latest ifconfig
 
 # or (bridge is the default)
@@ -36,153 +49,197 @@ docker run --rm --net host busybox:latest ifconfig
 !SUB
 ### Container linking
 - Docker has a linking system that allows you to link multiple containers together and send connection information from one to another.
-- When containers are linked, information about a source container can be sent to a recipient container.
-- To establish links, Docker relies on the names of your containers.
-- First we create a container for our database.
+
 ```
-# EXAMPLE ONLY
-docker run -d --name postgres <image> <command>
+docker run --link <container_name>:<hostname_alias>
 ```
-- Secondly we link our database to our web container
+- This feature will be __deprecated__ in future docker versions.
+- Use __`docker network`__ instead
+  - Provides proper DNS
+  - Allows running containers with absent links
+
+!SUB
+### User defined networks
+- You can create your own user-defined networks that better isolate containers
+- You can create multiple networks
+- You can add containers to more than one network
+- Containers can only communicate within networks but not across networks
+- A container attached to two networks can communicate with member containers in either network
+
+!SUB
+### User defined networks
+* Let's go ahead and create our own network
+
 ```
-# EXAMPLE ONLY
-docker run -d --link postgres:db --name web <image> <command
+docker network create --subnet=10.0.100.0/24 foodtrucks
+docker network ls
+```
+* Let's move our running flask web app to the `foodtrucks` network
+
+```
+docker network connect foodtrucks food-trucks
+docker network disconnect bridge food-trucks
+docker network inspect foodtrucks
+docker network inspect bridge
+docker exec food-trucks ip addr
 ```
 
 !SUB
-### Building a cluster
-Next we build a simple cluster containing.
-- One node acting as proxy, nginx is used as proxy.
-- Three nodes acting as web server, nginx is used as web server.
-- One node acting as data store, redis is used as key value store.
-![cluster](images/simple-cluster.jpg)
+### Elasticsearch
+- Let's see if we can find pre made Elasticsearch image on the hub
+
+```
+docker search elasticsearch
+```
+- There exists an officially supported [image](https://hub.docker.com/_/elasticsearch/) for Elasticsearch
+- Let's run it with default settings attached to our `foodtrucks` network
+
+```
+docker run -d --net foodtrucks --name es elasticsearch
+docker exec food-trucks dig es
+docker exec food-trucks curl es:9200
+```
+- Let's restart food-trucks container to initialize the ES database
+
+```
+docker restart food-trucks
+```
+- Our web app should be fully operational
+
+```
+firefox http://<hostname>:5000
+```
 
 !SUB
-### Building a cluster - getting sources
-Clone the following git repo.
+### Food Trucks
+![food_trucks](images/food-trucks.png)
+
+!SUB
+![selinux_vs_youtube](images/selinux_vs_youtube.png)
+
+!SUB
+### SELinux vs YouTube
+- Let's think how a YouToube like app would work on one machine in docker containers
+- We consider only upload, transcode and download of videos/images
+
+![youtube_diagram](images/youtube_diagram.png)
+
+!SUB
+### SELinux and host folder sharing
+- Create a shared host folder
+
 ```
-cd
-git clone https://github.com/npalm/simple-docker-cluster.git
-cd simple-docker-cluster
+mkdir /opt/shared
+echo HELLO > /opt/shared/hello.txt
+```
+- Access it from a container
+
+```
+docker run --rm -it -v /opt/shared:/data busybox
+cd /data
+cat hello.txt
+echo HELLO2 >> hello.txt
+echo HELLO3 > hello3.txt
+```
+
+- [Second Terminal]
+
+```
+ls -Z /opt
+```
+
+- [Container]
+
+```
+exit
 ```
 
 !SUB
-### Building a cluster - data store
-- For the data store we use redis, a fast in memory key store.
-- We can build a redis image our selves or use the offical one. An example is available in the redis directory.
+### SELinux and write access
+- Let's try again
+  - Notice the `:Z` parameter for -v option
 
 ```
-# Search for the offical redis image in the docker registry
-docker search redis
-
-# download the image
-docker pull redis
-
-# inspect the image and look for the volumes listed
-docker inspect redis
+docker run --rm -it -v /opt/shared:/data:Z busybox
+cd data
+echo HELLO2 >> hello.txt
+echo HELLO3 > hello3.txt
 ```
 
-- Using `docker inspect` you should be able to find the a section that describes the volumes. This is the part where the container is supposed to store the persistent data.
+- [Second Terminal]
 
+```
+ls -Z /opt
+```
+
+- [Container]
+
+```
+exit
+```
 
 !SUB
-### Building a cluster - data store
-- The volume for the redis conatiner `/data` is thet place where the container stores ithe data. If we do not specify the volume explicit docker will create a volume for us, a docker managed volume.
+### SELinux and shared access for multiple containers
+- This time let's create several containers
+  - Notice `:z` parameter instead of `:Z`
 
 ```
-# start a redis container
-docker run -d --name redis redis
+docker run -d --name selinux1 -v /opt/shared:/data:z busybox
+docker run -d --name selinux2 -v /opt/shared:/data:z busybox
+docker run -d --name selinux3 -v /opt/shared:/data:z busybox
+ls -Z /opt
+```
+- Let's check if that works
 
-# find the volume name and list the volumes.
-docker inspect --format='{{range .Mounts}}{{.Name}}{{end}}' redis
+```
+docker exec -it selinux3 /bin/sh
+cd data
+echo HELLO2 >> hello.txt
+echo HELLO3 > hello3.txt
+exit
+```
+- Stop the containers:
+
+```
+docker stop selinux1 selinux2 selinux3
+```
+
+!SUB
+### Cleanup containers
+* List active and inactive containers
+
+```
+docker ps
+docker ps -a
+```
+* Remove containers filtering by name
+
+```
+docker rm $(docker ps -a -q -f "name=.*data")
+```
+* Remove stopped containers
+
+```
+docker rm $(docker ps -a -q -f exited=0)
+```
+* Remove all containers (forcing stop for running ones)
+
+```
+docker rm -f $(docker ps -a -q)
+```
+
+!SUB
+### Cleanup images and volumes
+* List images and volumes
+
+```
+docker images
 docker volume ls
-
-# remove the redis contaienr, -v will remove the volume as well.
-docker rm -v -f redis
 ```
-
-- For our redis container we mount a volume explicit. We mount a directory from the host direct to the container.
+* **The volume of the `nginx-data` container still exists!!**
+* Remove orphaned images and volumes
 
 ```
-# start the data store
-mkdir .data \
-docker run -d --name redis -v $(pwd)/.data:/data redis
-```
-
-
-!SUB
-### Building a cluster - web layer
-- We use node.js as web server.
-- Have a look at the Dockerfile in the web directory. We use the official node image as base image.
-
-```
-# Build the image
-docker build -t lab3/web web
-
-# Start the container, not exposting the port is optional
-docker run -d -p 8080:8080 --link redis:redis --name web1 lab3/web
-
-# Test
-curl http://localhost:8080
-
-# Inspect logging
-docker logs -f web1
-
-# Add two more nodes
-docker run -d --link redis:redis --name web2 lab3/web
-docker run -d --link redis:redis --name web3 lab3/web
-
-```
-
-!SUB
-### Building a cluster - proxy layter
-- We use nginx as proxy server.
-- Have a look at the nginx configuration file in the proxy directory.
-- We build the proxy server on top of the official docker image. Have a look at the Dockerfile.
-
-```
-# Build the image
-docker build -t lab3/proxy proxy
-
-# Start the container.
-docker run -d -p 80:80 --name proxy \
-  --link web1:web1 --link web2:web2 --link web3:web3 lab3/proxy
-
-# Test your cluster and inspect the logging
-# Open a new terminal
-docker logs -f proxy
-
-# Back to terminal one and fire some requests (or use the browser)
-for i in {0..99}; do curl http://localhost; echo ""; done
-```
-
-
-!SUB
-### Clean up
-- Docker ps shows you the conainters
-- Docker rm removes conainters
-
-```
-# -v removes inplicit mounts volumes
-# -f force to remove running containers
-# -q shows id only
-# -a show all (also stpped ones)
-docker rm -v -f $(docker ps -q -a)
-```
-
-!SUB
-### Same same but different
-![easy](images/easy.jpg)
-```
-# have a look at the compose file
-cat docker-compose.yml
-
-# build the conatiners
-docker-compose build
-
-# start the containers
-docker-compose up
-
-# execute in a new terminal window
-for i in {0..99}; do curl http://localhost; echo ""; done
+docker rmi $(docker images -q -f dangling=true)
+docker volume rm $(docker volume ls -q -f dangling=true)
 ```

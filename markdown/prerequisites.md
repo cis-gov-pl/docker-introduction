@@ -48,6 +48,8 @@ sudo ip link del docker0
 sudo service docker start
 ```
 
+__*Already set for tutorial VMs*__
+
 !SUB
 #### CentOS
 
@@ -65,3 +67,39 @@ sudo ip link del docker0
 sudo systemctl start docker
 ```
 
+__*Already set for tutorial VMs*__
+
+!SUB
+### Login to tutorial VMs
+
+#### VirtualBox
+* Import DockerTutorial.ova
+* Start DockerTutorial virtual machine
+* Login: cis
+* Password: cis
+* Open terminal
+
+#### Remote VMs
+* Login to your VM using ssh
+* Hostname and Password are on the paper sheet
+
+```
+ssh root@<hostname>
+```
+
+!SUB
+### Prepare tutorial materials
+* Open the tutorial slides (for copy & paste)
+
+[http://cis-ncbj.github.io/docker-introduction/](http://cis-ncbj.github.io/docker-introduction/)
+* Download the tutorial materials
+```
+cd /opt
+git clone https://github.com/cis-ncbj/docker-introduction-data
+```
+
+#### VirtualBox
+- Execute in terminal
+```
+yum -y install htop time iptables-services && systemctl enable iptables && systemctl start iptables
+```
