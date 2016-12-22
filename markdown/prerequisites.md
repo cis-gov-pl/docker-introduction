@@ -65,6 +65,7 @@ sudo service docker start
 
 __*Already set for tutorial VMs*__
 
+!SUB
 #### Debian/Ubuntu with upstream docker
 For Debian 8 and later and Ubuntu 15.04 and later the `/etc/default/docker` is ignored when installing directly from docker.com
 
