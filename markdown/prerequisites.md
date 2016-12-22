@@ -16,8 +16,10 @@
 * Alternatively you can run the handson on your local machine in VirtualBox
   * Requires VirtualBox [VirtualBox](https://www.virtualbox.org/wiki/Downloads) installation
 * Last possibility is to run docker locally on linux machine
+  * The titorial was tested with docker 1.10
   * Be aware that part of the tutorial might behave differently
   * Install docker, docker-compose, git and your favourite editor
+  * Run as root or add your user to the `docker` group
 
 !SUB
 ### VirtualBox
@@ -27,6 +29,19 @@
   * CentOS 7 Desktop
   * Tools: Docker, Docker Compose and Git (among others)
   * User: cis, Password: cis
+
+!SUB
+### Host setup for elasticsearch
+Elasticsearch which will be used in the handson has large memory requirements
+* Make sure your VM has at least 4GB of RAM
+* Increase the hosts mmap count limit:
+  * https://www.elastic.co/guide/en/elasticsearch/reference/2.1/setup-configuration.html#vm-max-map-count
+
+```
+sysctl -w vm.max_map_count=262144
+```
+
+__*Already set for tutorial VMs*__
 
 !SUB
 ### Docker @ CIS
@@ -46,6 +61,28 @@ Recreate the docker0 bridge:
 sudo service docker stop
 sudo ip link del docker0
 sudo service docker start
+```
+
+__*Already set for tutorial VMs*__
+
+#### Debian/Ubuntu with upstream docker
+For Debian 8 and later and Ubuntu 15.04 and later the `/etc/default/docker` is ignored when installing directly from docker.com
+
+Create */etc/systemd/system/docker.service.d/network.conf*:
+
+```
+[Service]
+ExecStart=
+ExecStart=/usr/bin/docker daemon -H fd:// --bip=10.0.245.1/24
+```
+
+Recreate the docker0 bridge:
+
+```
+sudo systemctl daemon-reload
+sudo systemctl stop docker
+sudo ip link del docker0
+sudo systemctl start docker
 ```
 
 __*Already set for tutorial VMs*__
@@ -101,5 +138,5 @@ git clone https://github.com/cis-ncbj/docker-introduction-data
 #### VirtualBox
 - Execute in terminal
 ```
-yum -y install htop time iptables-services && systemctl enable iptables && systemctl start iptables
+yum -y install htop time iptables-services && systemctl enable iptables && systemctl start iptables && systemctl restart docker
 ```

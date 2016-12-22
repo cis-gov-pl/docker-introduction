@@ -159,6 +159,7 @@ docker images
 docker run -d --name food-trucks -p 5000:5000 local/food-trucks
 ```
 * Access your web page
+  * It takes at least 15s for the webapp to start as it tries to connect to elasticsearch database which we will prepare in the next part of the handson
 
 ```
 firefox http://<hostname>:5000 &

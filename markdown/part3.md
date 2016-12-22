@@ -184,9 +184,9 @@ exit
   - Notice `:z` parameter instead of `:Z`
 
 ```
-docker run -d --name selinux1 -v /opt/shared:/data:z busybox
-docker run -d --name selinux2 -v /opt/shared:/data:z busybox
-docker run -d --name selinux3 -v /opt/shared:/data:z busybox
+docker run -d --name selinux1 -v /opt/shared:/data:z nginx
+docker run -d --name selinux2 -v /opt/shared:/data:z nginx
+docker run -d --name selinux3 -v /opt/shared:/data:z nginx
 ls -Z /opt
 ```
 - Let's check if that works
