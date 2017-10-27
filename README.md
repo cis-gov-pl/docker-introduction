@@ -1,6 +1,6 @@
 # Introduction to docker
 
-Live slides available at [cis-gov-pl.github.io/docker-introduction](http://cis-gov-pl.github.io/docker-introduction).
+Live slides available at [cis-ncbj.github.io/docker-introduction](http://cis-ncbj.github.io/docker-introduction).
 
 The slide deck contains a basic introduction for Docker. The labs are designed for a default Docker and Docker Compose installation using a standard linux shell. The concepts will works for the Docker Toolbox on Windows and Mac as weel but keep in mind you need to replace ip adresses.
 
